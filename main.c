@@ -231,6 +231,9 @@ void getRoom(int roomNumber) {
 
   fseek(fileptr, index, SEEK_SET);
 
+  //get environmental byte
+  x = (int) fgetc(fileptr);
+  
   /*deal with messages*/
   num = (int) fgetc(fileptr);
   //printf("Num message : %d\n",num);

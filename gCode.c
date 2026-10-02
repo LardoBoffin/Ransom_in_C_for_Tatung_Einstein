@@ -276,6 +276,6 @@ void afterAction()
 		swapObject(5, 1);
 		off(LAMP);		
 	}
-	printf("Oil : %d\n", get(OILLEFT));
+	//printf("Oil : %d\n", get(OILLEFT));
 	
 }

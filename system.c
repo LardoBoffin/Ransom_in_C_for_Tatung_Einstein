@@ -61,7 +61,7 @@ void off(int number) {
 
 int setTurn(int number) {
   turn+=number;
-  printf("\nTurn : %d\n",turn);
+  //printf("\nTurn : %d\n",turn);
   afterAction();
   return turn;
 }
