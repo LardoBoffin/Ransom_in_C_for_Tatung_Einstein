@@ -6,7 +6,7 @@
 void mode(int);
 void moveCursor(int, int);
 void oscli(char *);
-int pos(int);
+//int pos(void);
 
 
 

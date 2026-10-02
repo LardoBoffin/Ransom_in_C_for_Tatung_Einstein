@@ -22,6 +22,7 @@
 
 #include "char.h"
 
+
 const char messageLoc[] = "DATAM.DAT";
 const char nounFile[] = "DATAN.DAT";
 const char verbFile[] = "DATAV.DAT";
@@ -33,22 +34,36 @@ const char roomIndexLoc[] = "IDXR.DAT";
 
 int noun, noun2, oldNoun, verb, adverb, object, turn, room, objn, achn, doneFlag;
 int nounNumber, verbNumber, adverbNumber, randomNumber, exitFlag, andActive;
-int lastRoom, playerLocation, clear, numLinks, screenWidth;
+int lastRoom, playerLocation, clear, numLinks, screenWidth, objectFileSize;
 char * objectList, links[36], * ach, * nouns, * verbs, * adverbs, * sysMessages;
-char message[STRINGSIZE], word[WORDSIZE], andMessage[STRINGSIZE];
+char message[STRINGSIZE], word[WORDSIZE], andMessage[STRINGSIZE], gameTitle[STRINGSIZE];
 int debug;
 int numSysMessages;
+
+unsigned char get_universal_cpm_x(void) {
+    int row = 0;
+    int col = 0;
+
+    // 1. Send the standard ANSI interrogation sequence to the console
+    printf("\x1b[6n"); 
+    
+    // 2. CP/M will pipe the response back into your program's input stream.
+    // The sequence arrives formatted exactly as: ESC [ Row ; Col R
+    scanf("\x1b[%d;%dR", &row, &col); 
+
+    // ANSI columns are 1-indexed (1-40 or 1-80). 
+    // Subtract 1 to match C's standard 0-indexed column system.
+    return (unsigned char)(col - 1);
+}
 
 void takeObject(int number) {
   int objWeight;
   objWeight = objectWeight(number);
   if (debug == true) {
     printf("Object num %5d, weight %5d\n", number, objWeight);
-	printf("Current ENC : %d\n", getStat(ENC));
-	printf("MAX ENC : %d\n", getStat(MAXENC));
+    printf("Current ENC : %d\n", getStat(ENC));
+    printf("MAX ENC : %d\n", getStat(MAXENC));
   }
-
-
 
   if (objectHere(number, room) == 0) {
     showMessage(CantFindThat);
@@ -66,7 +81,7 @@ void takeObject(int number) {
 
   setObjectLocation(number, playerLocation);
   showMessage(16);
-  setTurn();
+  setTurn(1);
   setStat(ENC, getStat(ENC) + objWeight);
   if (debug == true) {
     printf("Max enc %5d, carried %5d\n", getStat(MAXENC), getStat(ENC));
@@ -85,7 +100,7 @@ void dropObject(int number) {
   }
   setObjectLocation(number, room);
   showMessage(Okay);
-  setTurn();
+  setTurn(1);
 
   cw = getStat(ENC) - objectWeight(number);
   if (cw < 0) {
@@ -104,7 +119,7 @@ void showMessage(int number) {
 
   getMessage(number);
   slen = strlen(message);
-  xpos = pos(XPOS); /*position across screen */
+  xpos = pos(); /*position across screen */
 
   x = 0;
 
@@ -212,7 +227,8 @@ void getRoom(int roomNumber) {
 
   fileptr = fopen(roomLoc, "rb");
   index = readIndex(roomNumber - 1, (char * ) roomIndexLoc, 4);
-  //printf("Room number : %d\n",roomNumber);
+
+
   fseek(fileptr, index, SEEK_SET);
 
   /*deal with messages*/
@@ -318,7 +334,7 @@ void parseText() {
 
   if (andActive == false) {
     /* step through the text entered and break down into words */
-    if (pos(XPOS) > 0) {
+    if (pos() > 0) {
       putchar('\n');
     }
 
@@ -449,46 +465,45 @@ void parseText() {
 /*-------------- main loop -------------*/
 int main() {
   int anothergame;
-  /*int fileLen;*/
 
-  printf("\016");					// clear the screen
+  //printf("\016"); // clear the screen
   
-  if (MODE == 0 || MODE == 3) {
-    screenWidth = modeZero;
-  } else {
-    screenWidth = modeSeven;
-  }
-
   debug = false;
   srand(time(NULL));
   turn = 0, anothergame = 1;
 
   mode(MODE);
-  
+
+  getMetaData("META.DAT");
+
   printf("Loading data.");
   if (loadObjects() > 0) {
     return 0;
   };
-  
+
   loadWords(NOUN);
   loadWords(VERB);
   loadWords(ADVERB);
   numSysMessages = getSizeOfFile((char * )
     "IDXM.DAT");
-  //printf("Num of sys messages in Main %d \n", numSysMessages);
   loadSystemMessages();
-  
-  printf("\016");					// clear the screen
+
+  //printf("\016"); // clear the screen
+  //printf("\x10");
+  //printf("\x14");
+  mode(MODE);
+  screenWidth = 39;
 
   while (anothergame == 1) {
 
-  memset( & ctr[0], 0, sizeof(ctr)); /*initialise the counter array to 0*/
-  
+    memset( & ctr[0], 0, sizeof(ctr)); /*initialise the counter array to 0*/
+
     /*base variable values*/
     lastRoom = 0;
     turn = 0;
     playerLocation = 10000;
-    puts("\nRansom - save the King!\n");
+    puts(gameTitle);
+    puts("\n");
 
     exitFlag = false;
     room = 1;
@@ -502,10 +517,11 @@ int main() {
       preRoom();
 
       if (room != lastRoom) {
+		//if you moved to a new room
         lastRoom = room;
         cls();
         getRoom(room);
-        setTurn();
+        setTurn(1);
       }
 
       /* check for instant death stuff */
@@ -515,15 +531,23 @@ int main() {
         parseText();
       }
       if (verb == 0 && exitFlag == 0 && doneFlag == 0) {
+		  //does not increment the current turn
         showMessage(Pardon);
         andActive = false;
         andMessage[0] = '\0';
       } else {
         if (exitFlag == 0 && doneFlag == 0) {
           doneFlag = checkMove();
+		  //no need to increment the turn as this will be handled in if (room != lastRoom)
         }
         if (exitFlag == 0 && doneFlag == 0) {
           doneFlag = lowPriority();
+		  if (doneFlag > 0)
+		  {
+			setTurn(doneFlag);
+		  }
+		  if (doneFlag >-1) {doneFlag=1;}else{doneFlag=0;}
+
         }
       }
 
@@ -545,19 +569,11 @@ int main() {
 
 /*------------------- game code ---------------*/
 
-void initialiseGame() {
-  /* set any variables here */
 
-  set(4, 3);
-  createChar();
-  setStat(ENC, 0);
-  setStat(MAXENC, 110);
-
-}
 
 void exitGame() {
   exitFlag = 1;
-  if (pos(XPOS) > 0) {
+  if (pos() > 0) {
     putchar('\n');
   }
 }

@@ -3,6 +3,43 @@
 
 /*-------------------------- file handling -------------------------*/
 
+int getMetaData(char * filename) {
+
+  int fileNumber, ch, c, i;
+  //load data about the game
+  FILE * f = fopen(filename, "rb");
+  if (!f) {
+    printf("File not found %s \n", filename);
+    return -1;
+  }
+
+  fileNumber = fgetc(f);
+  ch = fgetc(f);
+  objectFileSize = ch * 256;
+  ch = fgetc(f);
+  objectFileSize += ch;
+
+  //length of the title
+  ch = fgetc(f);
+
+  size_t bytesRead;
+
+  // Read a maximum of STRINGSIZE - 1 elements of size 1 (char)
+  bytesRead = fread(gameTitle, 1, STRINGSIZE - 1, f);
+
+  // If z88dk returns EOF (-1) or 0 on error/empty, handle gracefully
+  if (bytesRead == (size_t) EOF || bytesRead == 0) {
+    gameTitle[0] = '\0';
+    return;
+  }
+
+  // Safely cap off the string
+  gameTitle[bytesRead] = '\0';
+
+  fclose(f);
+
+}
+
 int getSizeOfFile(char * filename) {
 
   //size is held in the first two bytes
@@ -17,6 +54,7 @@ int getSizeOfFile(char * filename) {
   size = ch * 256;
   ch = fgetc(f);
   size += ch;
+  objectFileSize = size;
   fclose(f);
   return size;
 }
@@ -56,7 +94,7 @@ long readIndex(int recordNumber, char * fileName, int offSetValue) {
 
   fileptr = fopen(fileName, "rb");
   if (fileptr == NULL) {
-    printf("File not found %d",fileName);
+    printf("File not found %d", fileName);
     return 0;
   }
 
@@ -89,7 +127,7 @@ long readIndexRoom(int recordNumber, char * fileName) {
 
   fileptr = fopen(fileName, "rb");
   if (fileptr == NULL) {
-    printf("File not found %d",fileName);
+    printf("File not found %d", fileName);
     return 0;
   }
 
@@ -120,12 +158,8 @@ void loadSystemMessages() {
   }
   /* get the index of message 19 as this will be the end of message 18 */
 
-  //printf("No of sys messages in load messages: %d\n",numSysMessages);
-
   index = readIndex(numSysMessages, (char * ) messageIndexLoc, 5);
-
-  //printf("returned index %lu\n",index);
-
+  //printf("\nMessage index : %lu\n",index);
   sysMessages = (char * ) malloc(((int) index) * sizeof(char));
   fread(sysMessages, (int) index, 1, fileptr);
   fclose(fileptr);
@@ -160,9 +194,12 @@ void getMessage(int number) {
 
   } else {
 
-    printf("Doh!\n");
-    fileptr = fopen(messageLoc, "rb");
+    printf("Message : %d\n",number);
+    
     index = readIndex(number, (char * ) messageIndexLoc, 5);
+	printf("Index : %lu\n",index);
+	fileptr = fopen(messageLoc, "rb");
+	
     fseek(fileptr, index, SEEK_SET);
     fgetc(fileptr);
     msgLen = (int) fgetc(fileptr);
@@ -307,18 +344,14 @@ int loadObjects() {
     return 1;
   }
 
-  filelen = getSizeOfFileByBytes(objectLoc);
-  filelen = 40;
-  //printf("Object len:%d\n", (int) filelen);
-
   /*resize the objects array*/
-  objectList = (char * ) malloc(((int) filelen + 3) * sizeof(char));
+  objectList = (char * ) malloc(((int) objectFileSize + 3) * sizeof(char));
   /*read in the whole of the file*/
-  fread(objectList, (int) filelen, 1, fileptr);
+  fread(objectList, (int) objectFileSize, 1, fileptr);
   fclose(fileptr);
-  objn = (int) filelen / 8;
-  objn = 5;
-  //printf("Object number :%d\n", objn);
+  objn = (int) objectFileSize / 8;
+  //objn = 5;
+
   return 0;
 }
 
@@ -366,16 +399,16 @@ void loadGame(char * filename) {
   int i;
   unsigned char carryWeight, maxEnc;
   FILE * fileptr;
-  
-  if (filename=="NEWGAME.DAT"){
-	  printf("Start a new game...\n");
-  }else{	  
-	  printf("Loading game...\n");
+
+  if (filename == "NEWGAME.DAT") {
+    printf("Start a new game...\n");
+  } else {
+    printf("Loading game...\n");
   }
-  
+
   //fileptr = fopen("SAVEM.DAT", "rb");
   fileptr = fopen(filename, "rb");
-  
+
   if (fileptr == NULL) {
     printf("Could not load game!\n");
     return;

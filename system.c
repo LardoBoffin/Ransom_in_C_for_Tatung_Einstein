@@ -59,8 +59,10 @@ void off(int number) {
 
 /*-------------------- object based functions ---------------*/
 
-int setTurn() {
-  turn++;
+int setTurn(int number) {
+  turn+=number;
+  printf("\nTurn : %d\n",turn);
+  afterAction();
   return turn;
 }
 

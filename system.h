@@ -22,7 +22,7 @@
 #define BytesPerIndex 5
 #define XPOS 0
 #define YPOS 1
-#define MODE 0
+#define MODE 7
 #define modeZero 80
 #define modeSeven 39
 #define VERB 1
@@ -48,6 +48,8 @@ extern char *nouns,*verbs,*adverbs;
 extern unsigned char *sysMessages;
 extern char message[STRINGSIZE];
 extern int numSysMessages;
+extern int objectFileSize;
+extern char gameTitle[STRINGSIZE];
 
 extern enum Stats {
 	STR = 1,
@@ -112,6 +114,7 @@ void showCharacter(void);
 void createChar(void);
 int getXP(void);
 void increaseXP(int);
+void afterAction(void);
 
 #include "system.c"
 #include "gCode.h"

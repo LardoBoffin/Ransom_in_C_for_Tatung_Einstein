@@ -1,5 +1,4 @@
-/* Beeb functions */
-
+/* Tatung functions */
 
 void vdu25(int,int,int);
 void mode(int);
@@ -24,10 +23,58 @@ void mode(int m);
 
 int curX,curY;
 
+unsigned char pos(void) {
+    #asm
+        // On the Tatung Einstein, the MOS explicitly records the current 
+        // cursor column (0-39 or 0-79) directly at memory address 0xFB4A
+        ld a, ($FB4A)
+        
+        // Pass the 8-bit result safely back into C using the L register
+        ld l, a
+        ld h, 0
+    #endasm
+}
+
+void disable_einstein_cursor_flag(void) {
+    #asm
+        // 1. Set the cursor's logical tracking positions to 0.
+        // This ensures the next printf() starts exactly at column 0.
+        ld a, 0
+        ld ($FB4A), a   ; Column X = 0
+        ld ($FB4B), a   ; Row Y = 0
+
+        // 2. Clear out the primary VRAM tracking pointer ($02FB).
+        // The base VRAM offset for the 80-column display grid on row 0 
+        // is exactly 9 bytes. This forces alignment back to the left edge.
+        ld hl, 9
+        ld ($02FB), hl
+
+        // 3. THE MAME FIX: Change the 6845 hardware cursor base address registers.
+        // By changing Registers 14 and 15 (Cursor Address High/Low) inside the 
+        // system shadow maps to an out-of-bounds page index (like 0x3FFF), 
+        // MAME renders the cursor block off-screen.
+        
+        ld a, $3F
+        ld ($0329), a   ; Overwrite 6845 Register 14 Shadow (Cursor Address High)
+        ld a, $FF
+        ld ($032A), a   ; Overwrite 6845 Register 15 Shadow (Cursor Address Low)
+    #endasm
+}
+
+
+
 void mode(int m)
 {
-/* direct call to oswrch via kernel.h */
-
+	//mode 0 is 80 column mode
+	//mode 7 is 40 column mode
+	if (m==0){
+		//printf("\x10");
+		printf("\x14");
+	}
+	else
+	{
+		printf("\016"); //40 column mode
+	}	
 }
 
 void moveCursor(int x, int y)
@@ -54,13 +101,6 @@ void vdu(int code)
 void vdu25(int t,int x,int y)
 {
 }  
-
-int pos(int xy)
-{
- int retVal;
- retVal=1;
- return retVal;
-}
 
 int inkey(int lsb,int msb)
 {  

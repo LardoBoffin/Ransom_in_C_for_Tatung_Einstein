@@ -64,8 +64,20 @@ enum Counters {
     LEFTINTHEDARK = 4,
     FIRSTTURN = 5,
     FOUNDKEY = 6,
-    DOORLOCKED = 7
+    DOORLOCKED = 7,
+	OILLEFT = 8
 };
+
+void initialiseGame() {
+  /* set any variables here */
+
+  set(LEFTINTHEDARK, 3);
+  createChar();
+  setStat(ENC, 0);
+  setStat(MAXENC, 110);
+  set(OILLEFT, 20);
+}
+
 
 void preRoom() {
   off(ISDARK);
@@ -120,105 +132,150 @@ int highPriority() {
 }
 
 int lowPriority() {
+	
+	//return -1 if nothing happened, e.g. action not possible
+	//return 0 if no time taken, e.g. load or save.
+	//return 1+ if time taken. Return -1 will be added to the current turn
   if (verb == 14) {
     saveGame();
-    return true;
+    return 0;
   }
   if (verb == 15) {
     loadGame("SAVEM.DAT");
     getRoom(room);
-    return true;
+    return 0;
   }
   if (verb == 17 && noun == 9) {
     clear = 1;
-    return true;
+    return 0;
   }
   if (verb == 18 && noun == 9) {
     clear = 0;
-    return true;
+    return 0;
   }
+  
+  if ((verb ==16 && noun == 1) && (objectHere(5, room)|| objectHere(1, room) )) {
+    showMessage(57);
+    return 1;	  
+  }
+  
   if (room == 3 && verb == 2) {
     showMessage(42);
     exitGame();
-    return true;
+    return 0;
   }
   if (room == 4 && verb == 16 && noun == 8 && isOn(FOUNDKEY) == false) {
     on(FOUNDKEY);
     showMessage(43);
     moveObject(3, 4);
-    return true;
+    return 1;
   }
   if (room == 5 && verb == 19 && available(3, 5) == true && noun == 6 && isOn(DOORLOCKED) == false) {
     on(DOORLOCKED);
     showMessage(44);
-    return true;
+    return 1;
   }
   if (room == 5 && verb == 3 && isOn(DOORLOCKED)) {
     gotoRoom(6);
-    return true;
+    return 0;
   }
   if (verb == 16) {
     showMessage(41);
-    return true;
+    return 1;
   }
   if (verb == 7 && noun == 1 && objectHere(5, room)) {
     takeObject(5);
-    return true;
+    return 0;
   }
+   
   if (verb == 8 && noun == 1 && inInv(5)) {
     dropObject(5);
-    return true;
+    return 0;
   }
   if (verb == 7 && noun < 5) {
     takeObject(noun);
-    return true;
+    return 0;
   }
   if (verb == 8 && noun < 5) {
     dropObject(noun);
-    return true;
+    return 0;
   }
   if (verb == 9) {
     getRoom(room);
-    return true;
+    return 0;
   }
   if (verb == 10) {
     showInventory();
-    return true;
+    return 0;
   }
   if (verb == 11) {
     exitFlag = 1;
-    return true;
+    return 0;
   }
   if (verb == 17 && noun == 1 && inInv(1)) {
-    swapObject(1, 5);
-    on(2);
-    showMessage(35);
-    return true;
+	//lamp on
+	if (get(OILLEFT)==0)
+	{
+		showMessage(56);
+		return 0;
+	}
+	else{
+		swapObject(1, 5);
+		on(LAMP);
+		showMessage(35);
+		return 1;		
+	}
+
   }
 
   if (verb == 20) {
     showMessage(22);
-    return true;
+    return 0;
   }
 
   if (verb == 18 && noun == 1 && inInv(5)) {
+	  //lamp off
     swapObject(5, 1);
-    off(2);
+    off(LAMP);
     showMessage(36);
-    return true;
+    return 1;
   }
   if (verb == 21 && available(2, room) && noun == 2) {
 	  //you eat the rat
     showMessage(34);
 	setStat(ENC, getStat(ENC) - objectWeight(2));
     moveObject(2, 0);
-    return true;
+    return 1;
   }
 
   if (verb == 22) {
     showCharacter();
-    return true;
+    return 0;
   }
 
-  return false;
+  return -1;
+}
+
+void afterAction()
+{
+	//check if the lamp is on and if so reduce amount of oil remaining
+	if (isOn(LAMP))
+	{
+		//reduce amount of oil if lamp is on
+		dec(OILLEFT);
+	}
+	
+	if (get(OILLEFT)==4 && isOn(LAMP)){
+		//flickering
+		showMessage(54);
+	}
+	
+	if (get(OILLEFT)==0 && isOn(LAMP)){
+		//out of oil so switch it off
+		showMessage(55);
+		swapObject(5, 1);
+		off(LAMP);		
+	}
+	printf("Oil : %d\n", get(OILLEFT));
+	
 }
