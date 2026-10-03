@@ -267,11 +267,13 @@ void afterAction()
 	
 	if (get(OILLEFT)==4 && isOn(LAMP)){
 		//flickering
+		printf("\n");
 		showMessage(54);
 	}
 	
 	if (get(OILLEFT)==0 && isOn(LAMP)){
 		//out of oil so switch it off
+		printf("\n");		
 		showMessage(55);
 		swapObject(5, 1);
 		off(LAMP);		

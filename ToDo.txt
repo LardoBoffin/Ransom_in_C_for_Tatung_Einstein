@@ -1,0 +1,6 @@
+
+have a separate inf file with all file sizes?
+
+move all of the files that have wasted space where a byte is an int to bytes
+
+load all of the locations into RAM
