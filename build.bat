@@ -7,7 +7,7 @@ SET "ROMS=C:\MAME\ES-DE\Roms\einstein\EinTK02"
 SET "DISCTOOLS=C:\Einstein\DiscTools"
 
 rem compile program
-zcc +cpm -lm -leinstein -DAMALLOC -o RANSOM.COM main.c  || goto :error
+zcc +cpm -lm -leinstein -Iinclude -DAMALLOC -o RANSOM.COM main.c  || goto :error
 rem zcc +cpm -subtype=einstein -compiler=sdcc -O3 --max-allocs-per-node200000 -pragma-define:CRT_HEAP_AMALLOC=1 main.c -o RANSOM.COM -create-app || goto :error
 
 rem C:\Einstein\DiscTools\einstein_dsk_v1.6.py -h
