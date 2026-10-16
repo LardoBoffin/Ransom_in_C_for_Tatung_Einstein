@@ -76,6 +76,7 @@ void mode(int m)
 		printf("\016"); //40 column mode
 	}	
 }
+/*
 
 void moveCursor(int x, int y)
 {
@@ -140,7 +141,7 @@ void movePen(int angle, int length)
 
 void line(int angle,int length)
 {   
- /*int l;*/
+
  moveXY(curX,curY);
 
  if (angle==0)
@@ -190,3 +191,4 @@ void clg()
 {
 
 }   
+*/

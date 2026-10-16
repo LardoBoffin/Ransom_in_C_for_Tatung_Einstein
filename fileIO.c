@@ -3,9 +3,9 @@
 
 /*-------------------------- file handling -------------------------*/
 
-int getMetaData(char * filename) {
+void getMetaData(char * filename) {
 
-  int fileNumber, ch, c, i;
+  int fileNumber, ch;
   //load data about the game
   FILE * f = fopen(filename, "rb");
   if (!f) {
@@ -158,7 +158,7 @@ void loadSystemMessages() {
   }
   /* get the index of message 19 as this will be the end of message 18 */
 
-  index = readIndex(numSysMessages, (char * ) messageIndexLoc, 5);
+  index = readIndex(numSysMessages, (char * ) messageIndexLoc, 2);
   //printf("\nMessage index : %lu\n",index);
   sysMessages = (char * ) malloc(((int) index) * sizeof(char));
   fread(sysMessages, (int) index, 1, fileptr);
@@ -194,18 +194,18 @@ void getMessage(int number) {
 
   } else {
 
-    printf("Message : %d\n",number);
+    //printf("Message : %d\n",number);
     
-    index = readIndex(number, (char * ) messageIndexLoc, 5);
-	printf("Index : %lu\n",index);
-	fileptr = fopen(messageLoc, "rb");
+    index = readIndex(number, (char * ) messageIndexLoc, 2);
+	  //printf("Index : %lu\n",index);
+	  fileptr = fopen(messageLoc, "rb");
 	
     fseek(fileptr, index, SEEK_SET);
     fgetc(fileptr);
     msgLen = (int) fgetc(fileptr);
     fread(message, msgLen, 1, fileptr);
     fclose(fileptr);
-    reverse(message, 0, msgLen);
+    //reverse(message, 0, msgLen);
     message[msgLen] = '\0';
   }
 }

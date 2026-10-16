@@ -26,10 +26,10 @@ void inc(int counter) {
 }
 
 int get(int counter) {
-  return (int) ctr[counter];
-  if (debug == true) {
+   if (debug == true) {
     printf("Counter %5d is %5d", counter, ctr[counter]);
-  }
+  } 
+  return (int) ctr[counter];
 }
 
 int isOn(int number) {
@@ -128,10 +128,13 @@ int inInv(int number) {
   return false;
 }
 
-int available(int number, int roomNumber) {
+int available(int roomNumber, int number ) {
+  //printf("\nChecking if object %d is available in room %d\n",number,roomNumber);
   if (here(number, roomNumber) == true || inInv(number) == true) {
+    printf("\nObject %d is available in room %d\n",number,roomNumber);
     return true;
   }
+  printf("\nObject %d is not available in room %d\n",number,roomNumber);
   return false;
 }
 

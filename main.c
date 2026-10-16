@@ -10,7 +10,7 @@
 
 #include <string.h>
 
-#include <time.h>
+//#include <time.h>
 
 #include <ctype.h>
 
@@ -32,7 +32,8 @@ const char objectLoc[] = "DATAO.DAT";
 const char messageIndexLoc[] = "IDXM.DAT";
 const char roomIndexLoc[] = "IDXR.DAT";
 
-int noun, noun2, oldNoun, verb, adverb, object, turn, room, objn, achn, doneFlag;
+int noun, nounTwo, oldNoun, verb, adverb, object, turn, room, objn, achn, doneFlag;
+//int noun, nounTwo, oldNoun, verb, adverb, object, turn, room, objn, achn, doneFlag;
 int nounNumber, verbNumber, adverbNumber, randomNumber, exitFlag, andActive;
 int lastRoom, playerLocation, clear, numLinks, screenWidth, objectFileSize;
 char * objectList, links[36], * ach, * nouns, * verbs, * adverbs, * sysMessages;
@@ -45,7 +46,7 @@ unsigned char get_universal_cpm_x(void) {
     int col = 0;
 
     // 1. Send the standard ANSI interrogation sequence to the console
-    printf("\x1b[6n"); 
+    puts("\x1b[6n"); 
     
     // 2. CP/M will pipe the response back into your program's input stream.
     // The sequence arrives formatted exactly as: ESC [ Row ; Col R
@@ -60,9 +61,9 @@ void takeObject(int number) {
   int objWeight;
   objWeight = objectWeight(number);
   if (debug == true) {
-    printf("Object num %5d, weight %5d\n", number, objWeight);
-    printf("Current ENC : %d\n", getStat(ENC));
-    printf("MAX ENC : %d\n", getStat(MAXENC));
+    //puts("Object num %5d, weight %5d\n", number, objWeight);
+    //puts("Current ENC : %d\n", getStat(ENC));
+    //puts("MAX ENC : %d\n", getStat(MAXENC));
   }
 
   if (objectHere(number, room) == 0) {
@@ -84,7 +85,7 @@ void takeObject(int number) {
   setTurn(1);
   setStat(ENC, getStat(ENC) + objWeight);
   if (debug == true) {
-    printf("Max enc %5d, carried %5d\n", getStat(MAXENC), getStat(ENC));
+   // puts("Max enc %5d, carried %5d\n", getStat(MAXENC), getStat(ENC));
   }
 }
 
@@ -106,8 +107,9 @@ void dropObject(int number) {
   if (cw < 0) {
     cw = 0;
   }
+
   setStat(ENC, cw);
-  //printf("Max enc %5d, carried %5d\n", getStat(MAXENC), getStat(ENC));
+  //puts("Max enc %5d, carried %5d\n", getStat(MAXENC), getStat(ENC));
 }
 
 /*----------------- display functions -------------------*/
@@ -200,6 +202,11 @@ void showInventory() {
   listObjects(playerLocation, 1);
 }
 
+void showAchievements(){
+
+}
+
+
 /*------------------ room code ---------------*/
 void gotoRoom(int roomNumber) {
   room = roomNumber;
@@ -236,7 +243,7 @@ void getRoom(int roomNumber) {
   
   /*deal with messages*/
   num = (int) fgetc(fileptr);
-  //printf("Num message : %d\n",num);
+  //puts("Num message : %d\n",num);
 
   for (x = 0; x < num; x++) {
     message = (int) fgetc(fileptr) * 256;
@@ -332,7 +339,7 @@ void parseText() {
   verb = 0;
   noun = 0;
   adverb = 0;
-  noun2 = 0;
+  nounTwo = 0;
   andWasActive = false;
 
   if (andActive == false) {
@@ -355,6 +362,7 @@ void parseText() {
       }
       if (! * message) {
         puts("Please type something!");
+        showMessage(WhatNow);
       } else {
         gotText = 1;
       }
@@ -364,16 +372,16 @@ void parseText() {
 
   } else {
     slen = strlen(andMessage);
-    /*printf("\nand message %d",slen);*/
+    /*puts("\nand message %d",slen);*/
     for (i = 0; i < slen; i++) {
       message[i] = andMessage[i];
     }
     message[i] = '\0';
     /*putchar('\n');putchar('(');
-    printf("%s",message);putchar(')');putchar('\n'); */
+    puts("%s",message);putchar(')');putchar('\n'); */
     slen = i + 1;
     andWasActive = true;
-    /*printf("\new message %d",slen);*/
+    /*puts("\new message %d",slen);*/
   }
 
   /*check for " AND " */
@@ -382,7 +390,7 @@ void parseText() {
   if (andPos > 0) {
     /* AND is present with spaces before and after */
     andPos = andPos + 5;
-    /*printf("position of AND is %d",andPos);*/
+    /*puts("position of AND is %d",andPos);*/
     /* copy rest of string into andMessage and set flag */
 
     for (i = andPos, x = 0; i < slen - 1; i++, x++) {
@@ -399,13 +407,14 @@ void parseText() {
 
   if (andWasActive == true) {
     putchar('\n');
-    printf(">%s", message);
+    puts(message);
+    //puts(">%s", message);
     putchar('\n');
   }
 
   /* check for *cat or *. and call directly */
   if (strncmp("*.", message, 2) == 0 || strncmp("*C", message, 2) == 0) {
-    oscli("*CAT");
+    //oscli("*CAT");
     doneFlag = true;
     return;
   }
@@ -451,17 +460,17 @@ void parseText() {
       if (adverb > 0) parsed = true;
     }
 
-    if (noun2 == 0 && parsed == false) {
-      noun2 = parseWord(NOUN);
+    if (nounTwo == 0 && parsed == false) {
+      nounTwo = parseWord(NOUN);
     }
 
   }
   if (debug == true) {
-    printf("Verb %2d", verb);
-    printf("  Noun %2d", noun);
-    printf("  Old Noun %2d", oldNoun);
-    printf("  Adverb %2d", adverb);
-    printf("  Noun Two %2d\n", noun2);
+   printf("Verb %2d", verb);
+   printf("  Noun %2d", noun);
+   printf("  Old Noun %2d", oldNoun);
+   printf("  Adverb %2d", adverb);
+   printf("  Noun Two %2d\n", nounTwo);
   }
 }
 
@@ -469,7 +478,7 @@ void parseText() {
 int main() {
   int anothergame;
 
-  //printf("\016"); // clear the screen
+  //puts("\016"); // clear the screen
   
   debug = false;
   srand(time(NULL));
@@ -479,7 +488,7 @@ int main() {
 
   getMetaData("META.DAT");
 
-  printf("Loading data.");
+  puts("Loading data.");
   if (loadObjects() > 0) {
     return 0;
   };
@@ -487,13 +496,12 @@ int main() {
   loadWords(NOUN);
   loadWords(VERB);
   loadWords(ADVERB);
-  numSysMessages = getSizeOfFile((char * )
-    "IDXM.DAT");
+  numSysMessages = 19; //getSizeOfFile((char * )    "IDXM.DAT");
   loadSystemMessages();
 
-  //printf("\016"); // clear the screen
-  //printf("\x10");
-  //printf("\x14");
+  //puts("\016"); // clear the screen
+  //puts("\x10");
+  //puts("\x14");
   mode(MODE);
   screenWidth = 39;
 
@@ -517,10 +525,11 @@ int main() {
     while (exitFlag == 0) {
       doneFlag = 0;
       randomNumber = rand() % 101;
-      preRoom();
+      beforeRoomDescription();
+      printf("\nRoom : %d\n", room);
 
       if (room != lastRoom) {
-		//if you moved to a new room
+		    //if you moved to a new room
         lastRoom = room;
         cls();
         getRoom(room);
@@ -528,7 +537,7 @@ int main() {
       }
 
       /* check for instant death stuff */
-      doneFlag = highPriority();
+      doneFlag = beforePlayerInput();
 
       if (exitFlag == 0 && doneFlag == 0) {
         parseText();
@@ -544,7 +553,7 @@ int main() {
 		  //no need to increment the turn as this will be handled in if (room != lastRoom)
         }
         if (exitFlag == 0 && doneFlag == 0) {
-          doneFlag = lowPriority();
+          doneFlag = afterPlayerInput();
 		  if (doneFlag > 0)
 		  {
 			setTurn(doneFlag);
@@ -559,20 +568,15 @@ int main() {
         andActive = false;
         andMessage[0] = '\0';
       }
-
     }
-
     anothergame = again();
-
   }
 
-  printf("\nThanks for playing...");
+  puts("\nThanks for playing...");
   return (0);
 }
 
 /*------------------- game code ---------------*/
-
-
 
 void exitGame() {
   exitFlag = 1;
